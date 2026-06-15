@@ -2,7 +2,7 @@ import React from 'react';
 
 function Sidebar() {
     return(
-        <div className="w-64 bg-slate-900 text-white min-h-screen p-6 flex flex-col justify-between">
+        <div className="w-64 bg-zinc-900 text-white min-h-screen p-6 flex flex-col justify-between">
             <div>
                 {/* Branding */}
                 <h2 className="text-xl font-bold tracking-wider text-orange-400">BistroConnect</h2>
