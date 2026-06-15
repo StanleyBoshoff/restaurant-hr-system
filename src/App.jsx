@@ -9,6 +9,29 @@ function App() {
     { id: 3, name: "David Chen", role: "Line Cook", department: "Kitchen", status: "On Leave" }
   ]);
 
+  const [newName, setNewName] = useState("");
+  const [newRole, setNewRole] = useState("");
+  const [newDept, setNewDept] = useState("Kitchen"); 
+  
+  const handleAddEmployee = (e) => {
+    e.preventDefault();
+
+    if (newName.trim() === "") return;
+
+    const newWorker = {
+      id: Date.now(),
+      name: newName,
+      role: newRole || "Staff",
+      department: newDept,
+      status: "Active"
+    };
+
+    setEmployees([...employees, newWorker]);
+
+    setNewName("");
+    setNewRole("");
+  };
+
   return (
     // This 'flex' class splits our screen: Sidebar on the left, main content on the right
     <div className="flex bg-slate-100 min-h-screen w-full">
@@ -23,7 +46,50 @@ function App() {
           <p className="text-sm text-slate-500 mt-1">View, edit, and add active restaurant staff members.</p>
         </header>
 
-        {/* Temporary Placeholder Card for our upcoming Database Table */}
+        {/* Add Employee Form Container */}
+        <form onSubmit={handleAddEmployee} className="bg-white p-6 rounded-x1 shadow-sm border border-slate-200 max-w-4xl mb-6 flex flex-wrap gap-4 items-end">
+
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Employee Name</label>
+            <input
+              type="text"
+              placeholder="e.g. John Doe"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="w-full p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 text-slate-800 bg-white"
+              />
+          </div>
+
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Job Role</label>
+            <input
+              type="text"
+              placeholder="e.g. Sous chef"
+              value={newRole}
+              onChange={(e) => setNewRole(e.target.value)}
+              className="w-full p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 text-slate-800 bg-white"
+              />
+          </div>
+
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Department</label>
+            <select
+              value="{newDept}"
+              onChange={(e) => setNewDept(e.target.value)}
+              className="w-full p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 text-slate-800 bg-white"
+              >
+                <option value="Kitchen">Kitchen</option>                      
+                <option value="Front of House">Front of House</option>          
+                <option value="Management">Management</option>          
+            </select>
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-6 py-2 rounded-lg transition shadow-sm h-[38px] cursor-pointer"
+              >
+                Add Staff
+              </button>
+        </form>
                 {/* Employee Table Container */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 max-w-4xl overflow-hidden">
           <table className="w-full text-left border-collapse">
