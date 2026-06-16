@@ -26,13 +26,12 @@ function App() {
     fetchEmployees();
   }, []); // Empty brackets mean: run exactly once on startup
 
-  // Function C: Fires when someone submits the form to record a new staff entry
+    // Function C: Fires when someone submits the form to record a new staff entry
   const handleAddEmployee = async (e) => {
     e.preventDefault();
 
     if (newName.trim() === "") return;
 
-    // Pack our text boxes into a clean payload package for travel
     const employeePayload = {
       name: newName,
       role: newRole || "Staff",
@@ -40,7 +39,6 @@ function App() {
     };
 
     try {
-      // Post the package down to our secure PHP gateway
       const response = await fetch('http://localhost/restaurant-api/api.php', {
         method: 'POST',
         headers: {
@@ -50,8 +48,8 @@ function App() {
       });
 
       if (response.ok) {
-        fetchEmployees(); // Success! Refresh our screen list to show the new addition
-        setNewName("");   // Reset our text boxes
+        fetchEmployees(); 
+        setNewName("");   
         setNewRole("");
       } else {
         alert("Backend error: Failed to save record to MariaDB.");
@@ -59,7 +57,31 @@ function App() {
     } catch (error) {
       console.error("Network submission failure:", error);
     }
-  };
+  }; // This closes handleAddEmployee completely!
+
+  // Function D: Fires when someone clicks the 'Terminate' button
+  const handleDeleteEmployee = async (id) => {
+    if (!window.confirm("Security Action Required: Are you sure you want to completely remove this employee from the central ledger?")) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost/restaurant-api/api.php?id=${id}`, {
+        method: 'DELETE'
+      });
+
+      if (response.ok) {
+        fetchEmployees(); // Refresh list on success
+      } else {
+        alert("Server Error: Database refused to clear the requested record.");
+      }
+    } catch (error) {
+      console.error("Network communication failure during record deletion:", error);
+    }
+  }; // This closes handleDeleteEmployee completely!
+
+
+
 
   // --- USER INTERFACE RENDER (JSX) ---
   return (
@@ -122,6 +144,7 @@ function App() {
         </form>
 
         {/* Employee Table Container */}
+                {/* Employee Table Container */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 max-w-4xl overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
@@ -130,6 +153,7 @@ function App() {
                 <th className="p-4">Role</th>
                 <th className="p-4">Department</th>
                 <th className="p-4">Status</th>
+                <th className="p-4 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700 text-sm">
@@ -145,11 +169,20 @@ function App() {
                       {employee.status}
                     </span>
                   </td>
+                  <td className="p-4 text-right">
+                    <button
+                      onClick={() => handleDeleteEmployee(employee.id)}
+                      className="text-red-500 hover:text-red-700 text-xs font-semibold bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg transition cursor-pointer inline-block"
+                    >
+                      Terminate
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+
 
       </main>
 
