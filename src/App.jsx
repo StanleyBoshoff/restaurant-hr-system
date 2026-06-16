@@ -1,42 +1,71 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; // 1. Added useEffect import here
 import Sidebar from './components/sidebar';
 
 function App() {
-
-  const [employees, setEmployees] = useState([
-    { id: 1, name: "Marcus Miller", role: "Head Chef", department: "Kitchen", status: "Active" },
-    { id: 2, name: "Sophia Martinez", role: "Server Lead", department: "Front of House", status: "Active" },
-    { id: 3, name: "David Chen", role: "Line Cook", department: "Kitchen", status: "On Leave" }
-  ]);
-
+  // --- STATE VARIABLES ---
+  const [employees, setEmployees] = useState([]);
   const [newName, setNewName] = useState("");
   const [newRole, setNewRole] = useState("");
   const [newDept, setNewDept] = useState("Kitchen"); 
-  
-  const handleAddEmployee = (e) => {
+
+  // --- DATABASE FUNCTIONS ---
+
+  // Function A: Reads records from MariaDB via our PHP script
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetch('http://localhost/restaurant-api/api.php');
+      const data = await response.json();
+      setEmployees(data); // Injects the live database array into our screen layout
+    } catch (error) {
+      console.error("Error communicating with the HR backend database:", error);
+    }
+  };
+
+  // Function B: Fires automatically the exact millisecond the app finishes mounting
+  useEffect(() => {
+    fetchEmployees();
+  }, []); // Empty brackets mean: run exactly once on startup
+
+  // Function C: Fires when someone submits the form to record a new staff entry
+  const handleAddEmployee = async (e) => {
     e.preventDefault();
 
     if (newName.trim() === "") return;
 
-    const newWorker = {
-      id: Date.now(),
+    // Pack our text boxes into a clean payload package for travel
+    const employeePayload = {
       name: newName,
       role: newRole || "Staff",
-      department: newDept,
-      status: "Active"
+      department: newDept
     };
 
-    setEmployees([...employees, newWorker]);
+    try {
+      // Post the package down to our secure PHP gateway
+      const response = await fetch('http://localhost/restaurant-api/api.php', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(employeePayload)
+      });
 
-    setNewName("");
-    setNewRole("");
+      if (response.ok) {
+        fetchEmployees(); // Success! Refresh our screen list to show the new addition
+        setNewName("");   // Reset our text boxes
+        setNewRole("");
+      } else {
+        alert("Backend error: Failed to save record to MariaDB.");
+      }
+    } catch (error) {
+      console.error("Network submission failure:", error);
+    }
   };
 
+  // --- USER INTERFACE RENDER (JSX) ---
   return (
-    // This 'flex' class splits our screen: Sidebar on the left, main content on the right
     <div className="flex bg-slate-100 min-h-screen w-full">
       
-      {/* Left Sidebar */}
+      {/* Left Sidebar Navigation */}
       <Sidebar />
 
       {/* Right Main Content Window */}
@@ -47,7 +76,7 @@ function App() {
         </header>
 
         {/* Add Employee Form Container */}
-        <form onSubmit={handleAddEmployee} className="bg-white p-6 rounded-x1 shadow-sm border border-slate-200 max-w-4xl mb-6 flex flex-wrap gap-4 items-end">
+        <form onSubmit={handleAddEmployee} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 max-w-4xl mb-6 flex flex-wrap gap-4 items-end">
 
           <div className="flex-1 min-w-[200px]">
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Employee Name</label>
@@ -57,7 +86,7 @@ function App() {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               className="w-full p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 text-slate-800 bg-white"
-              />
+            />
           </div>
 
           <div className="flex-1 min-w-[200px]">
@@ -68,29 +97,31 @@ function App() {
               value={newRole}
               onChange={(e) => setNewRole(e.target.value)}
               className="w-full p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 text-slate-800 bg-white"
-              />
+            />
           </div>
 
           <div className="flex-1 min-w-[150px]">
             <label className="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Department</label>
             <select
-              value="{newDept}"
+              value={newDept} // Removed the structural quotes typo here
               onChange={(e) => setNewDept(e.target.value)}
               className="w-full p-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-blue-500 text-slate-800 bg-white"
-              >
-                <option value="Kitchen">Kitchen</option>                      
-                <option value="Front of House">Front of House</option>          
-                <option value="Management">Management</option>          
+            >
+              <option value="Kitchen">Kitchen</option>                      
+              <option value="Front of House">Front of House</option>          
+              <option value="Management">Management</option>          
             </select>
-            </div>
-            <button
-              type="submit"
-              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-6 py-2 rounded-lg transition shadow-sm h-[38px] cursor-pointer"
-              >
-                Add Staff
-              </button>
+          </div>
+
+          <button
+            type="submit"
+            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-6 py-2 rounded-lg transition shadow-sm h-[38px] cursor-pointer"
+          >
+            Add Staff
+          </button>
         </form>
-                {/* Employee Table Container */}
+
+        {/* Employee Table Container */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 max-w-4xl overflow-hidden">
           <table className="w-full text-left border-collapse">
             <thead>
